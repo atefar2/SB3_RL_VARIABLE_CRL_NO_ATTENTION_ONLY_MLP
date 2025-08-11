@@ -527,7 +527,7 @@ class PortfolioEnv(gym.Env):
             # Calculate long-term bonus: λ_long * (1/N) * (V_t - V_{t-N}) / V_{t-N}
             if v_t_minus_n > 1e-9:  # Avoid division by zero
                 long_term_return = (v_t - v_t_minus_n) / v_t_minus_n
-                self.long_term_bonus = config.LONG_TERM_LAMBDA * long_term_return #* (1.0 / config.LONG_TERM_LOOKBACK) 
+                self.long_term_bonus = config.LONG_TERM_LAMBDA * long_term_return * (1.0 / config.LONG_TERM_LOOKBACK) #!
                 
                 # Debug output for long-term bonus
                 if abs(self.long_term_bonus) > 0.001:  # Only log significant bonuses

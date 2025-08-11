@@ -601,8 +601,8 @@ if __name__ == '__main__':
         # "models/TD3_tf_agents_style_heavy_STRUCTURED_CREDIT_20250714_153933/checkpoints/model_62800_steps.zip"
         # "models/TD3_tf_agents_style_heavy_SHAPLEY_20250719_141411/checkpoints/model_40000_steps.zip"
     
-
-        "models/TD3_tf_agents_style_heavy_STRUCTURED_CREDIT_variable_CRL_adaptive_20250809_033254/best_model.zip"
+        "models/TD3_tf_agents_style_heavy_TRANSACTION_COST_variable_CRL_adaptive_20250810_135805/final_model.zip"
+        # "models/TD3_tf_agents_style_heavy_STRUCTURED_CREDIT_variable_CRL_adaptive_20250810_163529/final_model.zip"
 
     ]
     

@@ -92,7 +92,7 @@ OBS_COLS_MAX = [53.16,69.71,90.97,0.4,0.4,0.4,39.31,24.4,85.49,114.25,66.32,130.
 # =============================================================================
 
 # Episode length (number of time steps per episode)
-EPISODE_LENGTH = 1500
+EPISODE_LENGTH = 500
 
 # Logging and model save directories
 LOGDIR = "logs"
@@ -437,3 +437,13 @@ if __name__ == "__main__":
     validate_config()
 
 
+
+
+
+# #########################################################################################
+
+# #########################################################################################
+
+alpaca_paper_api_key = "PKM7ZSQKUFBCW4E2ND9G"
+alpaca_paper_secret_key = "dpkubcxdVeoX3TtGfhxnN2qSSZSliJsUkCacf8l0"
+alpaca_paper_endpoint = "https://paper-api.alpaca.markets/"    #https://paper-api.alpaca.markets

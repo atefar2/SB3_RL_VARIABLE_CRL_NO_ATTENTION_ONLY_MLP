@@ -1372,6 +1372,9 @@ if __name__ == "__main__":
         # Determine portfolio mode
         use_variable_portfolio = args.use_variable_portfolio and not args.use_fixed_portfolio
         
+        # Set portfolio mode in config
+        config.set_portfolio_mode(use_variable_portfolio)
+        
         model, returns, iterations = train_simple_mlp_tf_agents_style(
             algorithm=args.algorithm,
             mlp_size=args.mlp_size,
@@ -1414,6 +1417,9 @@ if __name__ == "__main__":
         
         # Determine portfolio mode
         use_variable_portfolio = args.use_variable_portfolio and not args.use_fixed_portfolio
+        
+        # Set portfolio mode in config
+        config.set_portfolio_mode(use_variable_portfolio)
         
         train_simple_mlp(
             algorithm=args.algorithm,

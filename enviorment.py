@@ -146,14 +146,13 @@ class PortfolioEnv(gym.Env):
 
         self.max_index = self.df.shape[0]
 
-        # Fixed episode slicing logic to match successful implementation approach
-        # Keep total data rows constant (like successful implementation uses 1500 rows)
-        # This means: 1 coin = 1500 steps, 2 coins = 750 steps, 3 coins = 500 steps
-        total_data_rows = config.EPISODE_LENGTH  # 1500 rows like successful implementation
-        time_steps_per_episode = total_data_rows // self.n_episode_coins
+        # ✅ FIX: Ensure consistent data usage for 1500 steps regardless of coin count
+        # Calculate required data rows: 1500 steps * number of coins
+        # This ensures we have enough data for the full episode duration
+        required_data_rows = config.EPISODE_LENGTH * self.n_episode_coins
         
-        if self.max_index > total_data_rows + 3:
-            max_start_point = self.max_index - total_data_rows - 3
+        if self.max_index > required_data_rows + 3:
+            max_start_point = self.max_index - required_data_rows - 3
             # Ensure start_point is aligned with the start of a timestamp block
             start_timestamp = np.random.randint(0, max_start_point // self.n_episode_coins)
             start_point = start_timestamp * self.n_episode_coins
@@ -161,7 +160,7 @@ class PortfolioEnv(gym.Env):
             # If dataset is too small, start from the beginning
             start_point = 0
             
-        end_point = start_point + total_data_rows
+        end_point = start_point + required_data_rows
         self.df = self.df.loc[start_point:end_point+2].reset_index(drop=True)
 
         self.df = self.df.reset_index(drop=True)
@@ -238,9 +237,9 @@ class PortfolioEnv(gym.Env):
             }
             obs_dict = observation
         
-        # Fixed episode termination logic to match successful implementation approach
-        # Episodes run for total_data_rows // n_coins time steps
-        time_steps_per_episode = config.EPISODE_LENGTH // self.n_episode_coins
+        # ✅ FIX: Ensure all episodes run for exactly 1500 steps regardless of coin count
+        # This provides consistent episode lengths for stable training
+        time_steps_per_episode = config.EPISODE_LENGTH  # Always 1500 steps
         self._episode_ended = True if self.index == time_steps_per_episode else False
         
         return obs_dict, info
@@ -332,9 +331,9 @@ class PortfolioEnv(gym.Env):
         # 💰 ESSENTIAL: Show results
         print(f"💰 Portfolio: ${self.current_value:.2f} | Reward: {reward:.4f} | Actual: {[f'{x:.3f}' for x in self.money_split_ratio]}")
         
-        # Check if episode is done (use correct episode length matching successful implementation)
-        # Episodes run for EPISODE_LENGTH // n_coins time steps (constant data usage)
-        time_steps_per_episode = config.EPISODE_LENGTH // self.n_episode_coins
+        # ✅ FIX: Ensure all episodes run for exactly 1500 steps regardless of coin count
+        # This provides consistent episode lengths for stable training
+        time_steps_per_episode = config.EPISODE_LENGTH  # Always 1500 steps
         terminated = self.index >= time_steps_per_episode
         truncated = False  # Add truncation logic if needed
         

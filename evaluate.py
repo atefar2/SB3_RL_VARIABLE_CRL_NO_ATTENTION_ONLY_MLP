@@ -516,6 +516,9 @@ def test_variable_portfolio_evaluation():
     print("🧪 Testing variable portfolio evaluation...")
     
     try:
+        # Set config to variable mode for testing
+        config.set_portfolio_mode(True)
+        
         # Create test environment
         test_env = PortfolioEnv(use_variable_portfolio=True)
         print(f"✅ Variable portfolio environment created")
@@ -599,7 +602,7 @@ if __name__ == '__main__':
         # "models/TD3_tf_agents_style_heavy_SHAPLEY_20250719_141411/checkpoints/model_40000_steps.zip"
     
 
-        "models/TD3_tf_agents_style_heavy_TRANSACTION_COST_CRL_adaptive_20250725_160104/final_model.zip"
+        "models/TD3_tf_agents_style_heavy_STRUCTURED_CREDIT_variable_CRL_adaptive_20250809_033254/best_model.zip"
 
     ]
     
@@ -622,7 +625,7 @@ if __name__ == '__main__':
     
     # --- FIX: Create environment BEFORE loading the model ---
     print("🏗️  Creating evaluation environment...")
-    # Infer reward type from model path to ensure consistency
+    # Infer reward type and portfolio mode from model path to ensure consistency
     model_path_upper = model_path.upper()
     if "TRANSACTION_COST" in model_path_upper:
         reward_type = "TRANSACTION_COST"
@@ -634,9 +637,22 @@ if __name__ == '__main__':
         reward_type = "POMDP"
     else:
         reward_type = "simple"
+    
+    # Detect variable portfolio mode from model path
+    use_variable_portfolio = "VARIABLE" in model_path_upper
+    is_fixed_portfolio = "FIXED" in model_path_upper
+    
+    # If neither is explicitly mentioned, assume variable (for backward compatibility)
+    if not use_variable_portfolio and not is_fixed_portfolio:
+        use_variable_portfolio = True  # Default to variable for newer models
+    
+    print(f"🔍 Detected portfolio mode: {'Variable' if use_variable_portfolio else 'Fixed'} from model path")
+    
+    # Set portfolio mode in config to match the model
+    config.set_portfolio_mode(use_variable_portfolio)
         
-    eval_env = PortfolioEnv(reward_type=reward_type)
-    print(f"✅ Environment created with reward_type='{reward_type}'")
+    eval_env = PortfolioEnv(reward_type=reward_type, use_variable_portfolio=use_variable_portfolio)
+    print(f"✅ Environment created with reward_type='{reward_type}' and variable_portfolio={use_variable_portfolio}")
     print(f"   Observation space: {eval_env.observation_space}")
     print(f"   Action space: {eval_env.action_space}")
 

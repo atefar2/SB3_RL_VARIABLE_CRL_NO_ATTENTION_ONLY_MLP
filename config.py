@@ -16,7 +16,7 @@ COINS = ["DASH", "LTC", "STR"]
 # =============================================================================
 
 # Portfolio allocation mode (moved here to be used early)
-USE_VARIABLE_PORTFOLIO = False  # Set to False for backward compatibility
+USE_VARIABLE_PORTFOLIO = False  # Default to False, controlled by command line argument
 
 # Maximum number of coins supported in a single episode
 MAX_COINS = 3  # Reduced from 10 for realistic testing
@@ -25,8 +25,8 @@ MAX_COINS = 3  # Reduced from 10 for realistic testing
 # Note: For demonstration of variable portfolio, we'll use subsets of available coins
 COIN_POOL = ["DASH", "LTC", "STR"]
 
-# Range of coins to select per episode (min, max)
-COINS_PER_EPISODE_RANGE = (3, 3) if not USE_VARIABLE_PORTFOLIO else (1, 3)  # Fixed 3 coins for stability
+# Range of coins to select per episode (min, max) - will be set dynamically
+COINS_PER_EPISODE_RANGE = (3, 3)  # Default to fixed portfolio, updated by set_portfolio_mode()
 
 # Raw columns in the dataset
 COLS = ['high', 'low', 'open', 'close', 'volume', 'quoteVolume', 'weightedAverage']
@@ -375,6 +375,18 @@ def get_td3_crl_config(crl_profile="balanced"):
     complete_config.update(crl_config)
     
     return complete_config
+
+def set_portfolio_mode(use_variable_portfolio):
+    """Set the portfolio mode dynamically based on command line arguments."""
+    global COINS_PER_EPISODE_RANGE, USE_VARIABLE_PORTFOLIO
+    
+    USE_VARIABLE_PORTFOLIO = use_variable_portfolio
+    if use_variable_portfolio:
+        COINS_PER_EPISODE_RANGE = (1, 3)  # Variable 1-3 coins from the 3-coin pool
+        print(f"🔄 Portfolio mode set to VARIABLE: {COINS_PER_EPISODE_RANGE[0]}-{COINS_PER_EPISODE_RANGE[1]} coins per episode")
+    else:
+        COINS_PER_EPISODE_RANGE = (3, 3)  # Fixed 3 coins
+        print(f"🔄 Portfolio mode set to FIXED: {COINS_PER_EPISODE_RANGE[0]}-{COINS_PER_EPISODE_RANGE[1]} coins per episode")
 
 def get_random_coin_subset():
     """Get a random subset of coins for variable portfolio training."""

@@ -3335,6 +3335,176 @@ You've created a **universal portfolio allocation agent** that:
 
 This is **exactly** what institutional trading desks need - a **single model** that can handle the **dynamic nature** of real markets! 🚀
 
+Absolutely—here’s a tight “evidence pack” you can point to that substantiates your **variable-N, MLP + mask-and-renormalize** approach for portfolio RL, and explains *why* it works.
+
+# Practical evidence (and why it works)
+
+## 1) Directly outputing weights + normalization to the simplex works
+
+* The canonical DRL portfolio framework (EIIE) **outputs portfolio weights** directly and normalizes them (cash included). It shows strong backtest performance and, crucially, is **linearly scalable with portfolio size**—you don’t need to change the model when you change the asset count. That’s the same design principle you used (fixed head, normalize to sum-to-1).&#x20;
+* Popular applied stacks mirror this: **FinRL** formulates actions as **non-negative weights normalized to sum to one** (softmax/renorm), exactly the mask-and-renormalize pattern you’re using. ([FinRL Documentation][1])
+
+**Why it maps to your system:** fixed-dim action head + renormalization = stable replay shapes; the normalization enforces portfolio constraints without exotic layers.
+
+---
+
+## 2) Masking to support **variable stock pools** is state-of-the-art
+
+* **EarnMore (2023–24)** introduces **maskable stock representations** so *one* trained agent handles **customizable stock pools** without retraining—precisely your “variable portfolio” requirement. They mask out non-eligible assets and re-weight the rest, reporting large gains across many pool subsets. ([arXiv][2])
+
+**Why it maps to your system:** your `active_mask` + renorm is the minimalist, MLP-friendly version of this same idea.
+
+---
+
+## 3) Permutation invariance/equivariance is a real requirement in portfolio nets
+
+* **Deep Sets** gives the theoretical backbone: functions on sets (assets) should be permutation-invariant/equivariant; architectures that pool over items then map (φ/Σ/ρ) are universal for set functions. Your “identical per-asset treatment + mask + renorm” is in that family. ([arXiv][3], [NeurIPS Papers][4])
+* **WaveCorr** makes this explicit in portfolio RL, defining **Asset Permutation Invariance (API)** and designing a policy network that satisfies it—showing **more stable** performance. Even though they use CNN blocks, the inductive bias (treat assets symmetrically, aggregate, normalize) is the same one your MLP+mask embodies. ([tintin.hec.ca][5], [arXiv][6], [ScienceDirect][7])
+
+**Why it maps to your system:** your mask/renorm plus identical processing of slots treats assets as a set, not an ordered list—matching the invariance property.
+
+---
+
+## 4) Off-policy RL with **fixed shapes** is the practical sweet spot
+
+* Surveys and tutorials emphasize that **SAC/DDPG/TD3 are off-policy** and train from replay buffers; this benefits from **fixed-shape tensors** (exactly what your design guarantees), and these algorithms are widely used in portfolio RL benchmarks. ([EconStor][8])
+* Recent portfolio RL studies using **TD3** (and variants with explicit risk control) report competitive returns and better risk handling—again with standard, fixed-shape heads producing weights. ([ScienceDirect][9], [MDPI][10])
+
+**Why it maps to your system:** your fixed head stabilizes replay; the mask lives in the observation/env logic, not in the network’s shape.
+
+---
+
+## 5) Empirics: simple, feed-forward policies are often competitive
+
+* In broad evaluations, **simpler actor-critic baselines (e.g., A2C)** sometimes **outperform more complex** architectures on sector/ETF universes; **TD3/SAC** tend to lead on other slices—takeaway: you don’t need recurrence/attention to win; a solid feed-forward policy with the *right constraints* works. ([EconStor][8])
+* The original **EIIE** paper compares multiple backtests and shows the **weight-directing policy** family (CNN/RNN/LSTM heads with a shared weight mechanism) **dominating traditional baselines**; the mechanism that matters is the **weighting + normalization pipeline**, not sequence memory.&#x20;
+
+**Why it maps to your system:** your MLP head is a lighter instance of the same “direct-weights + normalization” paradigm that already beats classic allocators.
+
+---
+
+## 6) One more supporting thread: end-to-end allocators scale
+
+* End-to-end allocators that **skip explicit forecasts** and **produce weights directly** (Oxford group) show robust results and robustness in crises, reinforcing the practicality of the “compute weights directly, then normalize/regularize” approach. ([arXiv][11])
+
+---
+
+# Pull-quote style summary you can reuse
+
+* **Normalize to the simplex** (cash + assets) and treat assets as a **set** → aligns with theory (Deep Sets), improves stability, and is widely used in practice (EIIE/FinRL). ([FinRL Documentation][1])
+* **Masking for customizable pools** lets one agent handle **variable-N** assets without retraining (EarnMore), exactly what you achieved. ([arXiv][2])
+* **Off-policy algorithms** (TD3/SAC) prefer **fixed shapes**; your design keeps replay stable and training simple—while empirical work shows simple feed-forward policies are often **as good or better** than heavier sequence models for allocation. ([EconStor][8], [ScienceDirect][9], [MDPI][10])
+
+If you want, I can turn this into a short “Related Work” section for your repo/readme with crisp one-liners and links.
+
+[1]: https://finrl.readthedocs.io/en/latest/tutorial/Introduction/PortfolioAllocation.html "Portfolio Allocation — FinRL 0.3.1 documentation"
+[2]: https://arxiv.org/abs/2311.10801 "[2311.10801] Reinforcement Learning with Maskable Stock Representation for Portfolio Management in Customizable Stock Pools"
+[3]: https://arxiv.org/abs/1703.06114?utm_source=chatgpt.com "Deep Sets"
+[4]: https://papers.neurips.cc/paper/6931-deep-sets.pdf?utm_source=chatgpt.com "Deep Sets"
+[5]: https://tintin.hec.ca/pages/erick.delage/WaveCorr.pdf?utm_source=chatgpt.com "WaveCorr: Deep Reinforcement Learning with Permutation ..."
+[6]: https://arxiv.org/pdf/2109.07005?utm_source=chatgpt.com "WaveCorr"
+[7]: https://www.sciencedirect.com/science/article/pii/S0167637723001748?utm_source=chatgpt.com "WaveCorr: Deep reinforcement learning with permutation ..."
+[8]: https://www.econstor.eu/bitstream/10419/271267/1/qms-rp2023-01.pdf "Reinforcement Learning and Portfolio Allocation: Challenging Traditional Allocation Methods"
+[9]: https://www.sciencedirect.com/science/article/pii/S1044028324000887?utm_source=chatgpt.com "Deep reinforcement learning for portfolio selection"
+[10]: https://www.mdpi.com/2227-7390/11/1/19?utm_source=chatgpt.com "A Portfolio Model with Risk Control Policy Based on Deep ..."
+[11]: https://arxiv.org/pdf/2111.09170?utm_source=chatgpt.com "A Universal End-to-End Approach to Portfolio Optimization ..."
+
+
+# ⚡️ TRANSACTION COST STRUCTURE CREDIT REWARD DYNAMICS ------------------------
+
+
+Looking at these two fully trained models, I can see a fascinating difference in actor loss behavior that directly relates to the reward function design. Let me explain why the actor loss behaves differently between TRANSACTION_COST and STRUCTURED_CREDIT rewards.
+
+## **Key Difference: Actor Loss Trajectories**
+
+**TRANSACTION_COST Model:**
+- Actor loss starts positive (~0.004), drops to negative, then **continues decreasing** throughout training
+- Episode rewards show steady improvement with some fluctuations
+
+**STRUCTURED_CREDIT Model:**
+- Actor loss starts near 0, drops to minimum (~-0.034) around 10,000 timesteps, then **climbs upward** for the rest of training
+- Episode rewards still improve despite the actor loss increasing
+
+## **Root Cause: Reward Function Complexity and Learning Dynamics**
+
+### **1. TRANSACTION_COST Reward - Simple and Consistent**
+```python
+# Simple, dense reward every step
+gross_return = (self.current_value - self.previous_value) / self.previous_value
+raw_reward = gross_return + self.long_term_bonus
+self.step_reward = np.clip(raw_reward, -0.1, 0.1)
+```
+
+**Why actor loss keeps decreasing:**
+- **Consistent signal**: Every step provides a meaningful reward based on portfolio performance
+- **Immediate feedback**: Agent learns from each action's immediate impact
+- **Stable learning**: The reward function doesn't change during training
+- **Actor optimization**: Actor can continuously improve by learning better action-value mappings
+
+### **2. STRUCTURED_CREDIT Reward - Complex with Cold Start**
+```python
+# Cold start period (first 30 steps)
+if len(self.price_history) < config.LONG_TERM_LOOKBACK:
+    raw_reward = step_return + self.long_term_bonus
+    self.step_reward = np.clip(raw_reward, -0.1, 0.1)
+else:
+    # Complex structured reward with 30-step lookback
+    # Multiple calculations: allocation averaging, asset returns, risk penalties
+```
+
+**Why actor loss hits minimum early then climbs:**
+
+#### **Phase 1: Cold Start (0-10,000 timesteps)**
+- Agent learns from simple, dense rewards during cold start
+- Actor loss decreases rapidly as it learns basic portfolio management
+- **This is when the actor loss hits its minimum**
+
+#### **Phase 2: Structured Reward Activation (10,000+ timesteps)**
+- Agent switches to complex structured rewards with 30-step lookbacks
+- **Reward signal becomes more volatile and less immediate**
+- **Actor struggles to learn from delayed, complex credit assignment**
+
+### **3. The "Actor Loss Climbing" Phenomenon**
+
+The actor loss climbs upward in STRUCTURED_CREDIT because:
+
+1. **Reward Signal Degradation**: The structured reward is less informative than the simple cold start reward
+2. **Delayed Credit Assignment**: 30-step lookbacks create temporal credit assignment problems
+3. **Complex Reward Landscape**: The agent must learn to optimize for:
+   - Average allocations over 30 steps
+   - Asset-specific performance attribution
+   - Risk penalties based on downside deviation
+   - Long-term bonuses
+
+4. **Actor-Critic Mismatch**: The critic may be learning the complex reward structure, but the actor struggles to generate actions that consistently achieve high structured rewards
+
+### **4. Why Episode Rewards Still Improve**
+
+Despite the actor loss climbing, episode rewards improve because:
+
+1. **Critic Learning**: The critic is still learning to predict the complex reward structure
+2. **Exploration Benefits**: The agent may be finding better strategies through exploration
+3. **Portfolio Performance**: The underlying portfolio performance (simple returns) may be improving even if the structured reward signal is noisy
+
+## **The Fundamental Issue**
+
+The STRUCTURED_CREDIT reward function has a **learning discontinuity**:
+
+- **Cold Start**: Simple, dense rewards → Easy learning → Actor loss decreases
+- **Structured Phase**: Complex, delayed rewards → Hard learning → Actor loss increases
+
+This suggests the structured reward is **over-engineered** and creates a harder learning problem than the simple transaction cost reward.
+
+## **Recommendations**
+
+1. **Simplify the structured reward** to be more immediate and less complex
+2. **Remove the cold start discontinuity** by using consistent reward calculation
+3. **Consider shorter lookback periods** (e.g., 5-10 steps instead of 30)
+4. **Add intermediate rewards** to bridge the temporal gap
+
+The TRANSACTION_COST model shows that **simpler, more immediate rewards lead to better actor learning** and more stable training dynamics.
+
+
 # ⚡️ training logs -------------------------------------
 
 1: STRUCTURED_CREDIT + ENV DRAWDOWN custom_td3.py L2

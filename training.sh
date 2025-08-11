@@ -23,7 +23,7 @@ python train_simple_mlp.py \
 
 # === VARIABLE PORTFOLIO MLP TRAINING ===
 # FOR VARIABLE MLP, USE USE_VARIABLE_PORTFOLIO
-
+🎲 Episode coins: ['DASH', 'STR', 'LTC'] (3 coins)
 python train_simple_mlp.py \
     --algorithm TD3 \
     --mlp-size heavy \

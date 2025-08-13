@@ -4,12 +4,21 @@ import pandas as pd
 
 
 def main() -> int:
-    # Configuration
-    csv_path = Path("cleaned_preprocessed.csv")
-    output_csv = Path("coin_lengths_summary.csv")
+    # Configuration (allow optional CLI args: input_csv [output_csv])
+    if len(sys.argv) >= 2:
+        csv_path = Path(sys.argv[1])
+    else:
+        csv_path = Path("cleaned_preprocessed.csv")
+
+    if len(sys.argv) >= 3:
+        output_csv = Path(sys.argv[2])
+    else:
+        # Derive output name from input name
+        stem = csv_path.stem
+        output_csv = Path(f"coin_lengths_summary_{stem}.csv")
 
     print("\n" + "=" * 50)
-    print("COIN OHLC LENGTH ANALYSIS (cleaned_preprocessed.csv)")
+    print(f"COIN OHLC LENGTH ANALYSIS ({csv_path.name})")
     print("=" * 50)
 
     if not csv_path.exists():
@@ -45,7 +54,6 @@ def main() -> int:
 
     # Group and compute metrics
     print("Computing per-coin OHLC lengths...")
-    grouped = df.groupby("coin"),
 
     records = []
     for coin, g in df.groupby("coin"):
